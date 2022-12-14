@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mysql: # See Also: https://hub.docker.com/_/mysql
+    image: mysql:8.0.31
+    container_name: fastforward-mysql
+    hostname: fastforward-mysql
+    command: [ "mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_general_ci", "--default-authentication-plugin=mysql_native_password" ]
+    restart: always
+    environment:
+      MYSQL_DATABASE: fastforward
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: '%'
+      TZ: Asia/Seoul
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql/initdb.d/:/docker-entrypoint-initdb.d
+    networks:
+      - fastforward-db-net
+
+  app:
+    container_name: app
+    restart: always
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8080:8080
+
+    networks:
+      - fastforward-db-net
+    depends_on:
+      - mysql
+
+networks:
+  fastforward-db-net:
+    driver: bridge
+
